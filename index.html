@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>每日喝水打卡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── CSS 变量 ───────────────────────────────────── */
+    :root {
+      --bg:          #f0f4f8;
+      --surface:     #ffffff;
+      --ink:         #1a1f2e;
+      --ink-muted:   #8a94a6;
+      --accent:      #3b7dd8;
+      --accent-dark: #2a5db0;
+      --ripple:      rgba(59, 125, 216, 0.18);
+      --danger-muted:#c0c8d8;
+      --shadow:      0 8px 40px rgba(30, 50, 100, 0.10);
+      --radius-card: 28px;
+      --radius-btn:  50px;
+      --transition:  0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── 页面基础 ────────────────────────────────────── */
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(59,125,216,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(100,160,255,0.07) 0%, transparent 70%);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      padding: 24px;
+    }
+
+    /* ── 卡片 ────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow);
+      padding: 52px 56px 48px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    }
+
+    /* ── 水滴图标 ────────────────────────────────────── */
+    .drop-icon {
+      width: 52px;
+      height: 52px;
+      margin-bottom: 20px;
+    }
+
+    /* ── 标题 ────────────────────────────────────────── */
+    .title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* ── 计数数字 ────────────────────────────────────── */
+    .count-wrap {
+      position: relative;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .count {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(80px, 22vw, 108px);
+      line-height: 1;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      transition: transform var(--transition), color 0.15s;
+      will-change: transform;
+    }
+    .count.bump {
+      animation: bump 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes bump {
+      0%   { transform: scale(1);    }
+      40%  { transform: scale(1.12); }
+      100% { transform: scale(1);    }
+    }
+    .unit {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--ink-muted);
+      padding-bottom: 18px;
+    }
+
+    /* ── 目标进度 ────────────────────────────────────── */
+    .goal-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .goal-label span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ── 进度条 ──────────────────────────────────────── */
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: #e8edf5;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6aaaf5, var(--accent));
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+      width: 0%;
+    }
+
+    /* ── 按钮组 ──────────────────────────────────────── */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* ── 主打卡按钮 ──────────────────────────────────── */
+    .btn-checkin {
+      width: 100%;
+      padding: 18px 0;
+      border: none;
+      border-radius: var(--radius-btn);
+      background: var(--accent);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.18s, transform var(--transition), box-shadow 0.18s;
+      box-shadow: 0 4px 18px rgba(59, 125, 216, 0.32);
+    }
+    .btn-checkin:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 6px 24px rgba(59, 125, 216, 0.40);
+      transform: translateY(-1px);
+    }
+    .btn-checkin:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 10px rgba(59, 125, 216, 0.22);
+    }
+
+    /* 涟漪 */
+    .ripple-effect {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(0);
+      animation: ripple-anim 0.5s linear;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* ── 重置按钮 ────────────────────────────────────── */
+    .btn-reset {
+      background: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--danger-muted);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      padding: 4px 12px;
+      border-radius: 99px;
+      transition: color 0.18s, background 0.18s;
+    }
+    .btn-reset:hover {
+      color: #a0a8b8;
+      background: #f0f4f8;
+    }
+    .btn-reset:active {
+      transform: scale(0.96);
+    }
+
+    /* ── 完成提示 ────────────────────────────────────── */
+    .done-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eaf3ff;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 99px;
+      margin-top: -24px;
+      margin-bottom: 28px;
+      letter-spacing: 0.03em;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .done-badge.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── 响应式 ──────────────────────────────────────── */
+    @media (max-width: 440px) {
+      .card { padding: 44px 32px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- 水滴 SVG 图标 -->
+    <svg class="drop-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M26 6 C26 6 10 22 10 32 C10 41.4 17.2 48 26 48 C34.8 48 42 41.4 42 32 C42 22 26 6 26 6Z"
+            fill="url(#drop-grad)" />
+      <path d="M19 34 C19 34 20 40 26 41" stroke="rgba(255,255,255,0.55)" stroke-width="2.2" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="drop-grad" x1="26" y1="6" x2="26" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#6ab8fa"/>
+          <stop offset="100%" stop-color="#3b7dd8"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <p class="title">每日喝水打卡</p>
+
+    <!-- 数字 -->
+    <div class="count-wrap">
+      <span class="count" id="js-count">0</span>
+      <span class="unit">杯</span>
+    </div>
+
+    <!-- 目标标签 -->
+    <p class="goal-label" id="js-goal-label">目标 8 杯 · 已完成 <span id="js-pct">0%</span></p>
+
+    <!-- 进度条 -->
+    <div class="progress-track">
+      <div class="progress-fill" id="js-progress"></div>
+    </div>
+
+    <!-- 完成徽章（达标后显示） -->
+    <div class="done-badge" id="js-done-badge">
+      🎉 今日目标达成！
+    </div>
+
+    <!-- 按钮组 -->
+    <div class="btn-group">
+      <button class="btn-checkin" id="js-btn-checkin" aria-label="打卡一杯水">
+        喝了一杯 ＋
+      </button>
+      <button class="btn-reset" id="js-btn-reset" aria-label="重置今日记录">
+        重置今日记录
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════
+       常量
+    ═══════════════════════════════════════════════════ */
+    const STORAGE_KEY = 'waterCount_v1';
+    const GOAL        = 8;
+
+    /* ═══════════════════════════════════════════════════
+       DOM 引用
+    ═══════════════════════════════════════════════════ */
+    const elCount    = document.getElementById('js-count');
+    const elPct      = document.getElementById('js-pct');
+    const elProgress = document.getElementById('js-progress');
+    const elDone     = document.getElementById('js-done-badge');
+    const btnCheckin = document.getElementById('js-btn-checkin');
+    const btnReset   = document.getElementById('js-btn-reset');
+
+    /* ═══════════════════════════════════════════════════
+       核心状态
+    ═══════════════════════════════════════════════════ */
+    let waterCount = 0;
+
+    /* ─────────────────────────────────────────────────
+       loadData(): 从 localStorage 读取 → 初始化变量
+       localStorage 只存字符串，parseInt 转回整数
+       若键不存在（首次使用），parseInt(null) = NaN，
+       用 || 0 兜底，保证初始值为 0
+    ───────────────────────────────────────────────── */
+    function loadData() {
+      const raw  = localStorage.getItem(STORAGE_KEY);
+      waterCount = parseInt(raw) || 0;
+    }
+
+    /* ─────────────────────────────────────────────────
+       saveData(): 将当前变量写入 localStorage
+       toString() 将数字转为字符串后存储
+    ───────────────────────────────────────────────── */
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, waterCount.toString());
+    }
+
+    /* ─────────────────────────────────────────────────
+       render(): 把内存状态同步到页面 DOM
+    ───────────────────────────────────────────────── */
+    function render() {
+      // 数字
+      elCount.textContent = waterCount;
+
+      // 进度百分比（最高 100%）
+      const pct = Math.min(Math.round((waterCount / GOAL) * 100), 100);
+      elPct.textContent      = pct + '%';
+      elProgress.style.width = pct + '%';
+
+      // 达标徽章
+      elDone.classList.toggle('visible', waterCount >= GOAL);
+    }
+
+    /* ─────────────────────────────────────────────────
+       addRipple(): 在按钮上播放涟漪动画
+    ───────────────────────────────────────────────── */
+    function addRipple(btn, event) {
+      const rect   = btn.getBoundingClientRect();
+      const size   = Math.max(rect.width, rect.height);
+      const x      = event.clientX - rect.left - size / 2;
+      const y      = event.clientY - rect.top  - size / 2;
+
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple-effect';
+      Object.assign(ripple.style, {
+        width:  size + 'px',
+        height: size + 'px',
+        left:   x    + 'px',
+        top:    y    + 'px',
+      });
+
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    }
+
+    /* ─────────────────────────────────────────────────
+       bumpCount(): 数字弹跳动画
+    ───────────────────────────────────────────────── */
+    function bumpCount() {
+      elCount.classList.remove('bump');
+      // 强制重排，让动画可以重复触发
+      void elCount.offsetWidth;
+      elCount.classList.add('bump');
+    }
+
+    /* ═══════════════════════════════════════════════════
+       事件绑定
+    ═══════════════════════════════════════════════════ */
+
+    // 打卡按钮
+    btnCheckin.addEventListener('click', function (e) {
+      waterCount += 1;   // 改变量
+      saveData();        // 写 localStorage
+      render();          // 刷新 DOM
+      bumpCount();       // 动画反馈
+      addRipple(this, e);
+    });
+
+    // 重置按钮
+    btnReset.addEventListener('click', function () {
+      if (waterCount === 0) return;          // 已是 0，无需操作
+      waterCount = 0;    // 归零
+      saveData();        // 写 localStorage
+      render();          // 刷新 DOM
+    });
+
+    /* ═══════════════════════════════════════════════════
+       初始化：页面加载时执行一次 读取 → 渲染
+    ═══════════════════════════════════════════════════ */
+    loadData();
+    render();
+  </script>
+</body>
+</html>
